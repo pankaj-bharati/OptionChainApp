@@ -1,0 +1,31 @@
+/* Global base — Semantic UI CSS (imported in main.jsx) provides its own reset,
+   so we only need a few project-level overrides here. */
+
+:root {
+  --bg: #f4f6f8;
+  --text: #222;
+  --muted: #666;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Small helpers */
+.muted { color: var(--muted); }
+.visually-hidden {
+  position: absolute !important;
+  height: 1px; width: 1px;
+  overflow: hidden;
+  clip: rect(1px,1px,1px,1px);
+  white-space: nowrap;
+}

@@ -1,0 +1,120 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   App.css — only styles that Semantic UI React cannot provide out of the box.
+   SUI handles typography, buttons, forms, tables, messages, menus, etc.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Login / Reset pages ─────────────────────────────────────────────────── */
+
+/* Full-viewport centred wrapper used by LoginForm and ResetPasswordPage */
+.login-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: #f4f6f8;
+}
+
+/* Monospace code blocks inside the reset panel */
+.login-reset-curl {
+  margin: 6px 0 10px;
+  padding: 8px 10px;
+  background: #1b1c1d;
+  color: #e0e0e0;
+  border-radius: 4px;
+  font-size: 0.85em;
+  overflow-x: auto;
+  white-space: pre;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.login-reset-path {
+  display: block;
+  padding: 6px 10px;
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  border-radius: 4px;
+  color: #2e7d32;
+  font-size: 0.85em;
+  word-break: break-all;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* ── Countdown ring (Header) ─────────────────────────────────────────────── */
+
+.countdown-ring {
+  width: 44px;
+  height: 44px;
+}
+
+.countdown-text {
+  font-size: 0.75em;
+  fill: #fff;
+}
+
+/* ── Option chain table — cell-level colours SUI can't express ───────────── */
+
+/* ATM row warm tint */
+.option-chain-table tr.atm-row td {
+  background-color: rgba(255, 224, 130, 0.18) !important;
+}
+
+/* OI change — positive (green) */
+.option-chain-table td.oi-change-cell.oi-positive {
+  color: #21ba45;
+  font-weight: 700;
+  font-size: 1.1em;
+}
+
+/* OI change — negative (red) */
+.option-chain-table td.oi-change-cell.oi-negative {
+  color: #db2828;
+  font-weight: 700;
+  font-size: 1.1em;
+}
+
+/* Strike column — bold, slightly larger */
+.option-chain-table td.strike-cell {
+  font-weight: 700;
+  font-size: 1.15em;
+  background-color: #f5f5f5;
+}
+
+/* IV column — muted */
+.option-chain-table td.iv-cell {
+  color: #777;
+  font-size: 0.9em;
+}
+
+/* Volume — max-volume highlight */
+.option-chain-table td.vol-highlight {
+  color: #db2828;
+  font-weight: 700;
+  font-size: 1.05em;
+}
+
+.option-chain-table td.vol-cell {
+  color: #6435c9;
+  font-weight: 600;
+}
+
+/* CALLS / PUTS header bands */
+.option-chain-table th.calls-header {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+}
+
+.option-chain-table th.puts-header {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+/* Row hover */
+.option-chain-table tbody tr:hover td {
+  background-color: rgba(25, 118, 210, 0.04) !important;
+}
+
+.option-chain-table tbody tr.atm-row:hover td {
+  background-color: rgba(255, 224, 130, 0.25) !important;
+}

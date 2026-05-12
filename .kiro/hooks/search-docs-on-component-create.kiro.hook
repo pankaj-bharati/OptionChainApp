@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Search Docs on New Component",
+  "description": "When a new JSX component file is created in the components directory, searches the web for relevant React documentation based on the component's name and notifies the user with useful links.",
+  "version": "1",
+  "when": {
+    "type": "fileCreated",
+    "patterns": [
+      "client/src/components/*.jsx",
+      "client/src/components/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new React component file was just created. Look at the filename and any initial content in the file to infer what the component is for. Then use the web search tool to find 2-3 relevant official React or related library documentation pages that would help implement this component. Summarize what you found and share the links with the user. Keep it brief and practical."
+  }
+}

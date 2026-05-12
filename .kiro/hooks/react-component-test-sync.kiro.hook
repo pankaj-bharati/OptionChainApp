@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "React Component Test Sync",
+  "description": "When a React component file is saved, automatically create or update its corresponding test file in the __tests__ directory",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "client/src/components/*.jsx",
+      "client/src/*.jsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A React component file was just saved. Check if a corresponding test file exists in the nearest __tests__ directory (e.g., client/src/__tests__/<ComponentName>.test.jsx). If it does not exist, create a minimal test file for the component using Vitest and React Testing Library, following the existing test patterns in client/src/__tests__/. If it already exists, review the component's current props and logic and update the test file to reflect any new or changed behavior. Keep tests focused and prop-driven, matching the project's functional component conventions."
+  }
+}
