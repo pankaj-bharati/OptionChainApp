@@ -1,15 +1,28 @@
 {
   "name": "nse-option-chain-app",
   "version": "1.0.0",
-  "description": "NSE Option Chain Viewer with React frontend and Node backend",
+  "description": "NSE Option Chain Viewer — Node.js backend + React frontend + Electron Windows app",
+  "main": "electron/main.js",
   "scripts": {
-    "server": "cd server && npm start",
-    "client": "cd client && npm run dev",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "start": "concurrently \"npm run server\" \"npm run client\"",
-    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+    "server":       "cd server && npm start",
+    "client":       "cd client && npm run dev",
+    "dev":          "concurrently \"npm run server\" \"npm run client\"",
+    "start":        "concurrently \"npm run server\" \"npm run client\"",
+    "install-all":  "npm install && cd server && npm install && cd ../client && npm install",
+
+    "electron:dev": "npm run build:client && electron .",
+
+    "build:client": "cd client && npm run build",
+    "build:win":    "npm run build:client && electron-builder --config electron/build.config.js --win",
+    "build:exe":    "npm run build:client && electron-builder --config electron/build.config.js --win nsis",
+    "build:msi":    "npm run build:client && electron-builder --config electron/build.config.js --win msi",
+    "build:zip":    "npm run build:client && electron-builder --config electron/build.config.js --win zip"
   },
   "dependencies": {
     "concurrently": "^8.2.0"
+  },
+  "devDependencies": {
+    "electron":         "30.5.1",
+    "electron-builder": "24.13.3"
   }
 }

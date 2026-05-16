@@ -11,7 +11,11 @@ const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 
 // Path to the credentials file on disk
-const AUTH_FILE_PATH = path.join(__dirname, 'auth.json');
+// When running inside a packaged Electron app, auth.json is placed in
+// process.resourcesPath (outside the asar archive) so it remains writable.
+const AUTH_FILE_PATH = process.env.ELECTRON_RESOURCES_PATH
+  ? require('path').join(process.env.ELECTRON_RESOURCES_PATH, 'auth.json')
+  : path.join(__dirname, 'auth.json');
 
 const app = express();
 const port = 3000;
