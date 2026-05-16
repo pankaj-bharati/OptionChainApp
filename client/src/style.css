@@ -1,23 +1,14 @@
-/* Global base — Semantic UI CSS (imported in main.jsx) provides its own reset,
-   so we only need a few project-level overrides here. */
+/* Global base — MUI CssBaseline handles reset and typography.
+   Only project-level overrides live here. */
 
 :root {
-  --bg: #f4f6f8;
-  --text: #222;
-  --muted: #666;
+  --bg: #f1f5f9;
+  --text: #1e293b;
+  --muted: #64748b;
 }
 
 html, body, #root {
   height: 100%;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  background: var(--bg);
-  color: var(--text);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Small helpers */

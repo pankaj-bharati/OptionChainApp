@@ -1,11 +1,7 @@
-import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../AuthContext';
-import LoginForm from '../components/LoginForm';
+import { useAuth } from '../context/AuthContext';
+import LoginForm from '../components/auth/LoginForm';
 
-/**
- * /login — renders the LoginForm and redirects to / on success.
- */
 export default function LoginPage() {
   const { handleLoginSuccess, sessionExpired, credentialsFilePath, setCredentialsFilePath } = useAuth();
   const navigate = useNavigate();
@@ -21,7 +17,7 @@ export default function LoginPage() {
       sessionExpired={sessionExpired}
       credentialsFilePath={credentialsFilePath}
       onCredentialsPathReceived={setCredentialsFilePath}
-      resetPasswordLink={<Link to="/reset-password" className="login-forgot-btn">Forgot password?</Link>}
+      resetPasswordLink={<Link to="/reset-password">Forgot password?</Link>}
     />
   );
 }

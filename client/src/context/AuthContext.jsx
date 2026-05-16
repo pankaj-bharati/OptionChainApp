@@ -8,11 +8,10 @@ const AuthContext = createContext(null);
  * authStatus: 'loading' | 'authenticated' | 'unauthenticated'
  */
 export function AuthProvider({ children }) {
-  const [authStatus, setAuthStatus]             = useState('loading');
-  const [sessionExpired, setSessionExpired]     = useState(false);
+  const [authStatus, setAuthStatus]                   = useState('loading');
+  const [sessionExpired, setSessionExpired]           = useState(false);
   const [credentialsFilePath, setCredentialsFilePath] = useState(null);
 
-  // Keep a ref so the axios interceptor never captures a stale closure.
   const authStatusRef = useRef(authStatus);
   useEffect(() => { authStatusRef.current = authStatus; }, [authStatus]);
 
@@ -20,16 +19,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const controller = new AbortController();
     const timeoutId  = setTimeout(() => controller.abort(), 10_000);
-
     axios
-      .get('http://localhost:3000/api/auth/status', {
-        signal: controller.signal,
-        withCredentials: true,
-      })
+      .get('http://localhost:3000/api/auth/status', { signal: controller.signal, withCredentials: true })
       .then(() => setAuthStatus('authenticated'))
       .catch(() => setAuthStatus('unauthenticated'))
       .finally(() => clearTimeout(timeoutId));
-
     return () => { controller.abort(); clearTimeout(timeoutId); };
   }, []);
 
@@ -48,7 +42,6 @@ export function AuthProvider({ children }) {
     return () => axios.interceptors.response.eject(id);
   }, []);
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
   function handleLoginSuccess() {
     setSessionExpired(false);
     setAuthStatus('authenticated');

@@ -1,253 +1,148 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Button,
-  Container,
-  Divider,
-  Form,
-  Header,
-  Icon,
-  Message,
-  Segment,
-  Step,
-} from 'semantic-ui-react';
+  Box, Button, TextField, Typography, Paper, Alert,
+  CircularProgress, Stepper, Step, StepLabel, Divider,
+} from '@mui/material';
+import KeyIcon         from '@mui/icons-material/Key';
+import LockResetIcon   from '@mui/icons-material/LockReset';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ArrowBackIcon   from '@mui/icons-material/ArrowBack';
 
 const API = 'http://localhost:3000';
 
-/**
- * /reset-password — two-step password reset page.
- *
- * Step 1: Generate a reset token via POST /api/auth/request-reset.
- * Step 2: Submit the token + new password via POST /api/auth/reset-password.
- */
 export default function ResetPasswordPage() {
-  // Step 1 state
   const [credentialsFilePath, setCredentialsFilePath] = useState(null);
   const [requestLoading, setRequestLoading]           = useState(false);
   const [requestError, setRequestError]               = useState('');
   const [tokenGenerated, setTokenGenerated]           = useState(false);
 
-  // Step 2 state
-  const [token, setToken]                 = useState('');
-  const [newPassword, setNewPassword]     = useState('');
+  const [token, setToken]                     = useState('');
+  const [newPassword, setNewPassword]         = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [resetLoading, setResetLoading]   = useState(false);
-  const [resetError, setResetError]       = useState('');
-  const [resetSuccess, setResetSuccess]   = useState(false);
+  const [resetLoading, setResetLoading]       = useState(false);
+  const [resetError, setResetError]           = useState('');
+  const [resetSuccess, setResetSuccess]       = useState(false);
 
-  // ── Step 1 ────────────────────────────────────────────────────────────────
   async function handleRequestReset() {
-    setRequestLoading(true);
-    setRequestError('');
+    setRequestLoading(true); setRequestError('');
     try {
       const res  = await fetch(`${API}/api/auth/request-reset`, { method: 'POST', credentials: 'include' });
       const body = await res.json();
-      if (res.ok) {
-        setCredentialsFilePath(body.credentialsFilePath ?? 'server/auth.json');
-        setTokenGenerated(true);
-      } else {
-        setRequestError(body.error || 'Failed to generate reset token.');
-      }
-    } catch {
-      setRequestError('Network error. Please check your connection.');
-    } finally {
-      setRequestLoading(false);
-    }
+      if (res.ok) { setCredentialsFilePath(body.credentialsFilePath ?? 'server/auth.json'); setTokenGenerated(true); }
+      else setRequestError(body.error || 'Failed to generate reset token.');
+    } catch { setRequestError('Network error. Please check your connection.'); }
+    finally { setRequestLoading(false); }
   }
 
-  // ── Step 2 ────────────────────────────────────────────────────────────────
   async function handleResetSubmit(e) {
     e.preventDefault();
-
-    if (!token.trim()) {
-      setResetError('Please enter the reset token from auth.json.');
-      return;
-    }
-    if (newPassword.length < 8 || newPassword.length > 128) {
-      setResetError('Password must be between 8 and 128 characters.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setResetError('Passwords do not match.');
-      return;
-    }
-
-    setResetLoading(true);
-    setResetError('');
-
+    if (!token.trim())                                       { setResetError('Please enter the reset token.'); return; }
+    if (newPassword.length < 8 || newPassword.length > 128) { setResetError('Password must be 8–128 characters.'); return; }
+    if (newPassword !== confirmPassword)                     { setResetError('Passwords do not match.'); return; }
+    setResetLoading(true); setResetError('');
     try {
       const res  = await fetch(`${API}/api/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: token.trim(), newPassword }),
-        credentials: 'include',
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token.trim(), newPassword }), credentials: 'include',
       });
       const body = await res.json();
-      if (res.ok) {
-        setResetSuccess(true);
-      } else {
-        setResetError(body.error || 'Password reset failed.');
-      }
-    } catch {
-      setResetError('Network error. Please check your connection.');
-    } finally {
-      setResetLoading(false);
-    }
+      if (res.ok) setResetSuccess(true);
+      else setResetError(body.error || 'Password reset failed.');
+    } catch { setResetError('Network error. Please check your connection.'); }
+    finally { setResetLoading(false); }
   }
 
-  // ── Success screen ────────────────────────────────────────────────────────
   if (resetSuccess) {
     return (
-      <div className="login-page-wrapper">
-        <Segment raised style={{ maxWidth: 480, width: '100%', textAlign: 'center' }}>
-          <Icon name="check circle" color="green" size="huge" />
-          <Header as="h2" color="green" style={{ marginTop: '0.5rem' }}>
-            Password Updated
-          </Header>
-          <p style={{ color: '#555', marginBottom: '1.5rem' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', bgcolor: '#f1f5f9', p: 2 }}>
+        <Paper elevation={4} sx={{ maxWidth: 420, width: '100%', borderRadius: 3, p: 4, textAlign: 'center' }}>
+          <CheckCircleIcon sx={{ fontSize: 64, color: 'success.main', mb: 1 }} />
+          <Typography variant="h5" sx={{ fontWeight: 800, color: 'success.main', mb: 1 }}>Password Updated</Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
             Your password has been changed and all active sessions have been invalidated.
-          </p>
-          <Button as={Link} to="/login" primary>
+          </Typography>
+          <Button component={Link} to="/login" variant="contained" size="large" sx={{ borderRadius: 2, fontWeight: 700 }}>
             Back to Login
           </Button>
-        </Segment>
-      </div>
+        </Paper>
+      </Box>
     );
   }
 
   return (
-    <div className="login-page-wrapper">
-      <Segment raised style={{ maxWidth: 520, width: '100%' }}>
-        <Header as="h2" textAlign="center" color="blue" style={{ marginBottom: '1.5rem' }}>
-          Reset Password
-        </Header>
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', bgcolor: '#f1f5f9', p: 2 }}>
+      <Paper elevation={4} sx={{ width: '100%', maxWidth: 500, borderRadius: 3, overflow: 'hidden' }}>
+        <Box sx={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)', px: 3, py: 2.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <LockResetIcon sx={{ color: '#38bdf8', fontSize: 30 }} />
+          <Typography variant="h6" sx={{ color: '#fff', fontWeight: 800 }}>Reset Password</Typography>
+        </Box>
 
-        {/* Progress steps */}
-        <Step.Group fluid size="mini" style={{ marginBottom: '1.5rem' }}>
-          <Step completed={tokenGenerated} active={!tokenGenerated}>
-            <Icon name="key" />
-            <Step.Content>
-              <Step.Title>Generate Token</Step.Title>
-            </Step.Content>
-          </Step>
-          <Step active={tokenGenerated} disabled={!tokenGenerated}>
-            <Icon name="lock" />
-            <Step.Content>
-              <Step.Title>Set Password</Step.Title>
-            </Step.Content>
-          </Step>
-        </Step.Group>
+        <Box sx={{ p: 3 }}>
+          <Stepper activeStep={tokenGenerated ? 1 : 0} sx={{ mb: 3 }}>
+            <Step completed={tokenGenerated}>
+              <StepLabel icon={<KeyIcon fontSize="small" />}>Generate Token</StepLabel>
+            </Step>
+            <Step>
+              <StepLabel icon={<LockResetIcon fontSize="small" />}>Set Password</StepLabel>
+            </Step>
+          </Stepper>
 
-        {/* ── Step 1 ── */}
-        {!tokenGenerated ? (
-          <div>
-            <p style={{ color: '#555', marginBottom: '1rem' }}>
-              Click the button below to write a one-time reset token to{' '}
-              <code>auth.json</code> on the server. The token expires in 15 minutes.
-            </p>
-            <Button
-              primary
-              fluid
-              loading={requestLoading}
-              disabled={requestLoading}
-              onClick={handleRequestReset}
-            >
-              <Icon name="key" />
-              Generate Reset Token
-            </Button>
-            {requestError && (
-              <Message error style={{ marginTop: '1rem' }}>
-                <p>{requestError}</p>
-              </Message>
-            )}
-          </div>
-        ) : (
-          <Message info>
-            <Message.Header>Token Generated</Message.Header>
-            <p>Token written to:</p>
-            <code className="login-reset-path">{credentialsFilePath}</code>
-            <p style={{ marginTop: 8 }}>Or generate via terminal:</p>
-            <pre className="login-reset-curl">
-              curl -X POST http://localhost:3000/api/auth/request-reset
-            </pre>
-            <p style={{ marginTop: 8, fontSize: '0.9em', color: '#555' }}>
-              Open <code>auth.json</code>, copy the <code>resetToken</code> value, and paste it below.
-            </p>
-          </Message>
-        )}
-
-        {/* ── Step 2 ── */}
-        {tokenGenerated && (
-          <>
-            <Divider />
-            <Form onSubmit={handleResetSubmit} error={!!resetError} noValidate>
-              <Form.Field>
-                <label htmlFor="reset-token">Reset Token</label>
-                <input
-                  id="reset-token"
-                  type="text"
-                  value={token}
-                  onChange={(e) => setToken(e.target.value)}
-                  placeholder="Paste token from auth.json"
-                  autoComplete="off"
-                  disabled={resetLoading}
-                />
-              </Form.Field>
-
-              <Form.Field>
-                <label htmlFor="new-password">New Password</label>
-                <input
-                  id="new-password"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  maxLength={128}
-                  autoComplete="new-password"
-                  disabled={resetLoading}
-                />
-              </Form.Field>
-
-              <Form.Field>
-                <label htmlFor="confirm-password">Confirm Password</label>
-                <input
-                  id="confirm-password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  maxLength={128}
-                  autoComplete="new-password"
-                  disabled={resetLoading}
-                />
-              </Form.Field>
-
-              {resetError && (
-                <Message error>
-                  <p>{resetError}</p>
-                </Message>
-              )}
-
-              <Button
-                type="submit"
-                primary
-                fluid
-                loading={resetLoading}
-                disabled={resetLoading}
-                style={{ marginTop: '0.5rem' }}
-              >
-                <Icon name="lock" />
-                Reset Password
+          {!tokenGenerated ? (
+            <Box>
+              <Typography color="text.secondary" sx={{ mb: 2 }}>
+                Click below to write a one-time reset token to <code>auth.json</code>. The token expires in 15 minutes.
+              </Typography>
+              <Button variant="contained" fullWidth size="large" onClick={handleRequestReset}
+                disabled={requestLoading}
+                startIcon={requestLoading ? <CircularProgress size={18} color="inherit" /> : <KeyIcon />}
+                sx={{ borderRadius: 2, fontWeight: 700 }}>
+                Generate Reset Token
               </Button>
-            </Form>
-          </>
-        )}
+              {requestError && <Alert severity="error" sx={{ mt: 1.5 }}>{requestError}</Alert>}
+            </Box>
+          ) : (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Token Generated</Typography>
+              <Typography variant="body2">Token written to:</Typography>
+              <Box component="code" sx={{ display: 'block', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 1, p: 0.75, fontSize: '0.78rem', color: '#15803d', wordBreak: 'break-all', my: 0.5 }}>
+                {credentialsFilePath}
+              </Box>
+              <Typography variant="body2" sx={{ mt: 0.5 }}>Or generate via terminal:</Typography>
+              <Box component="pre" sx={{ background: '#1e293b', color: '#e2e8f0', borderRadius: 1, p: 1, fontSize: '0.78rem', overflowX: 'auto', my: 0.5 }}>
+                curl -X POST http://localhost:3000/api/auth/request-reset
+              </Box>
+            </Alert>
+          )}
 
-        <Divider />
-        <div style={{ textAlign: 'center' }}>
-          <Link to="/login" style={{ color: '#4183c4', fontSize: '0.9em' }}>
-            ← Back to Login
-          </Link>
-        </div>
-      </Segment>
-    </div>
+          {tokenGenerated && (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Box component="form" onSubmit={handleResetSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <TextField fullWidth label="Reset Token" value={token} onChange={e => setToken(e.target.value)}
+                  placeholder="Paste token from auth.json" autoComplete="off" disabled={resetLoading} />
+                <TextField fullWidth label="New Password" type="password" value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)} inputProps={{ maxLength: 128, autoComplete: 'new-password' }} disabled={resetLoading} />
+                <TextField fullWidth label="Confirm Password" type="password" value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)} inputProps={{ maxLength: 128, autoComplete: 'new-password' }} disabled={resetLoading} />
+                {resetError && <Alert severity="error">{resetError}</Alert>}
+                <Button type="submit" variant="contained" fullWidth size="large" disabled={resetLoading}
+                  startIcon={resetLoading ? <CircularProgress size={18} color="inherit" /> : <LockResetIcon />}
+                  sx={{ borderRadius: 2, fontWeight: 700 }}>
+                  Reset Password
+                </Button>
+              </Box>
+            </>
+          )}
+
+          <Divider sx={{ my: 2 }} />
+          <Box sx={{ textAlign: 'center' }}>
+            <Button component={Link} to="/login" startIcon={<ArrowBackIcon />} size="small" color="inherit">
+              Back to Login
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   );
 }
