@@ -7,4 +7,4 @@ popd
 set CSC_IDENTITY_AUTO_DISCOVERY=false
 set CSC_LINK=
 set WIN_CSC_LINK=
-electron-builder --config electron/build.config.js --win msi
+call node_modules\.bin\electron-builder.cmd --config electron/build.config.js --win msi

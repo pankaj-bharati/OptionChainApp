@@ -18,11 +18,22 @@ const fs     = require('fs');
 const SERVER_PORT   = 3000;
 const SERVER_URL    = `http://localhost:${SERVER_PORT}`;
 const HEALTH_URL    = `${SERVER_URL}/health`;
-const CLIENT_DIST   = path.join(__dirname, '..', 'client', 'dist', 'index.html');
-const SERVER_ENTRY  = path.join(__dirname, '..', 'server', 'server.js');
-const ICON_PATH     = path.join(__dirname, '..', 'client', 'public', 'icons', 'favicon-32x32.png');
 const POLL_INTERVAL = 500;   // ms between health checks
 const POLL_TIMEOUT  = 30000; // ms before giving up
+
+// Resolve paths that work both in dev and in a packaged asar app.
+// When packaged, __dirname is inside app.asar — use app.getAppPath() to get
+// the real filesystem path (which resolves to app.asar.unpacked for unpacked files).
+const APP_ROOT    = app.isPackaged
+  ? path.join(process.resourcesPath, 'app.asar.unpacked')
+  : path.join(__dirname, '..');
+
+const CLIENT_DIST  = app.isPackaged
+  ? path.join(process.resourcesPath, 'app.asar', 'client', 'dist', 'index.html')
+  : path.join(__dirname, '..', 'client', 'dist', 'index.html');
+
+const SERVER_ENTRY = path.join(APP_ROOT, 'server', 'server.js');
+const ICON_PATH    = path.join(__dirname, '..', 'client', 'public', 'icons', 'favicon-32x32.png');
 
 // ── Single-instance lock ──────────────────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
@@ -59,34 +70,34 @@ function waitForServer(timeout = POLL_TIMEOUT) {
 
 /** Resolve the path to the bundled Node.js binary (works both in dev and packaged) */
 function getNodePath() {
-  // In a packaged app, electron-builder unpacks node_modules into resources/app.asar.unpacked
-  // We use the system Node for dev, and the bundled one for production.
   if (app.isPackaged) {
-    // electron-builder copies the node binary next to the app
-    const candidates = [
-      path.join(process.resourcesPath, 'node.exe'),
-      path.join(process.resourcesPath, 'bin', 'node.exe'),
-    ];
-    for (const c of candidates) {
-      if (fs.existsSync(c)) return c;
-    }
+    // When packaged, use Electron's own binary with ELECTRON_RUN_AS_NODE=1
+    // This makes the Electron exe behave as a plain Node.js runtime.
+    return process.execPath;
   }
-  return process.execPath.includes('electron') ? 'node' : process.execPath;
+  // In dev: use the system node (process.execPath is the electron dev binary here)
+  return 'node';
 }
 
 /** Start the Express server as a child process */
 function startServer() {
   const nodePath = getNodePath();
 
+  const env = {
+    ...process.env,
+    NODE_ENV: 'production',
+    PORT: String(SERVER_PORT),
+    ELECTRON_RESOURCES_PATH: app.isPackaged ? process.resourcesPath : '',
+  };
+
+  // When packaged, set ELECTRON_RUN_AS_NODE so the Electron binary runs as Node
+  if (app.isPackaged) {
+    env.ELECTRON_RUN_AS_NODE = '1';
+  }
+
   serverProc = spawn(nodePath, [SERVER_ENTRY], {
-    cwd: path.join(__dirname, '..', 'server'),
-    env: {
-      ...process.env,
-      NODE_ENV: 'production',
-      PORT: String(SERVER_PORT),
-      // Tell server.js where to find auth.json when packaged
-      ELECTRON_RESOURCES_PATH: app.isPackaged ? process.resourcesPath : '',
-    },
+    cwd: path.join(APP_ROOT, 'server'),
+    env,
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
   });
@@ -135,7 +146,13 @@ function createWindow() {
   });
 
   // Load the built React app
-  mainWindow.loadFile(CLIENT_DIST);
+  // In packaged mode use loadURL with the asar file protocol;
+  // in dev use loadFile which works with plain filesystem paths.
+  if (app.isPackaged) {
+    mainWindow.loadURL(`file://${path.join(process.resourcesPath, 'app.asar', 'client', 'dist', 'index.html').replace(/\\/g, '/')}`);
+  } else {
+    mainWindow.loadFile(CLIENT_DIST);
+  }
 
   // Show once content is ready
   mainWindow.once('ready-to-show', () => mainWindow.show());
