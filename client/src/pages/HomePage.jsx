@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Box, CircularProgress, Typography, Paper } from '@mui/material';
+import { Box, CircularProgress, Typography, Paper, IconButton, Tooltip, Chip } from '@mui/material';
 import SatelliteAltIcon from '@mui/icons-material/SatelliteAlt';
 import HistoryIcon      from '@mui/icons-material/History';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import RestoreIcon       from '@mui/icons-material/Restore';
 
 import { useAuth }    from '../context/AuthContext';
 import AppHeader      from '../components/layout/AppHeader';
@@ -13,7 +15,31 @@ import OIChart        from '../components/dashboard/OIChart';
 import OIHistory      from '../components/dashboard/OIHistory';
 import { fmtInt, fmtFloat } from '../utils/format';
 
-const FETCH_INTERVAL = 30000; // 30 s
+const FETCH_INTERVAL    = 30000;       // 30 s
+const OI_HISTORY_MAX    = 100;         // max snapshots kept in state + localStorage
+const HISTORY_BACKUP_KEY = 'oiHistoryBackup';   // localStorage key for deleted backup
+const RESTORE_WINDOW_MS  = 24 * 60 * 60 * 1000; // 24 hours
+
+/** Save a backup of history with a deletion timestamp */
+function saveBackup(history) {
+  try {
+    localStorage.setItem(HISTORY_BACKUP_KEY, JSON.stringify({ data: history, deletedAt: Date.now() }));
+  } catch (_) {}
+}
+
+/** Load backup if it exists and is within the restore window */
+function loadBackup() {
+  try {
+    const raw = localStorage.getItem(HISTORY_BACKUP_KEY);
+    if (!raw) return null;
+    const { data, deletedAt } = JSON.parse(raw);
+    if (Date.now() - deletedAt > RESTORE_WINDOW_MS) {
+      localStorage.removeItem(HISTORY_BACKUP_KEY);
+      return null;
+    }
+    return { data, deletedAt };
+  } catch (_) { return null; }
+}
 
 function getWindowedItems(items, underlying, n = 5) {
   if (!Array.isArray(items) || items.length === 0) return { items: [], atmStrike: null };
@@ -61,10 +87,18 @@ export default function HomePage() {
     try { return Number(localStorage.getItem('itemChainData')) || 2; }
     catch { return 2; }
   });
+  // When ON  → keep OI history when window size changes
+  // When OFF → clear OI history on window size change (original behaviour)
+  const [keepHistory, setKeepHistory] = useState(() => {
+    try { return localStorage.getItem('keepHistoryOnWindowChange') === 'true'; }
+    catch { return false; }
+  });
   const [expiryDates, setExpiryDates]       = useState([]);
   const [selectedExpiry, setSelectedExpiry] = useState('');
   const [lastFetch, setLastFetch]           = useState(null);
   const [now, setNow]                       = useState(Date.now());
+  // Backup for restore — loaded once on mount
+  const [backup, setBackup] = useState(() => loadBackup());
 
   // Fetch expiry dates once
   useEffect(() => {
@@ -109,8 +143,8 @@ export default function HomePage() {
       const samePuts  = prev.puts[0]?.value  === agg.puts;
       if (sameCalls && samePuts) return prev;
       const next = {
-        calls: sameCalls ? prev.calls : [{ value: agg.calls, time: timestamp }, ...prev.calls].slice(0, 10),
-        puts:  samePuts  ? prev.puts  : [{ value: agg.puts,  time: timestamp }, ...prev.puts ].slice(0, 10),
+        calls: sameCalls ? prev.calls : [{ value: agg.calls, time: timestamp }, ...prev.calls].slice(0, OI_HISTORY_MAX),
+        puts:  samePuts  ? prev.puts  : [{ value: agg.puts,  time: timestamp }, ...prev.puts ].slice(0, OI_HISTORY_MAX),
       };
       localStorage.setItem('oiHistory', JSON.stringify(next));
       return next;
@@ -145,9 +179,16 @@ export default function HomePage() {
         itemChainData={itemChainData}
         setItemChainData={v => {
           setItemChainData(v);
-          setHistory({ calls: [], puts: [] });
-          localStorage.removeItem('oiHistory');
+          if (!keepHistory) {
+            setHistory({ calls: [], puts: [] });
+            localStorage.removeItem('oiHistory');
+          }
           try { localStorage.setItem('itemChainData', String(v)); } catch {}
+        }}
+        keepHistory={keepHistory}
+        setKeepHistory={v => {
+          setKeepHistory(v);
+          try { localStorage.setItem('keepHistoryOnWindowChange', String(v)); } catch {}
         }}
         expiryDates={expiryDates}
         selectedExpiry={selectedExpiry}
@@ -185,11 +226,55 @@ export default function HomePage() {
 
           {/* History panel */}
           <Paper elevation={2} sx={{ p: 2, borderRadius: 2 }}>
-            <PanelHeader
-              icon={HistoryIcon} iconColor="#8b5cf6"
-              title="History — Cumulative ΔOI Snapshots"
-              subtitle={`Last ${Math.max(history.calls.length, history.puts.length)} snapshots`}
-            />
+            {/* ── History panel header with delete / restore ── */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, pb: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+              <HistoryIcon sx={{ color: '#8b5cf6', fontSize: '1.3rem' }} />
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                  History — Cumulative ΔOI Snapshots
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  Last {Math.max(history.calls.length, history.puts.length)} snapshots
+                </Typography>
+              </Box>
+
+              {/* Restore button — only when a valid backup exists */}
+              {backup && (
+                <Tooltip title={`Restore deleted history (expires in ${Math.max(0, Math.round((RESTORE_WINDOW_MS - (Date.now() - backup.deletedAt)) / 3600000))}h)`}>
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setHistory(backup.data);
+                      localStorage.setItem('oiHistory', JSON.stringify(backup.data));
+                      localStorage.removeItem(HISTORY_BACKUP_KEY);
+                      setBackup(null);
+                    }}
+                    sx={{ color: '#8b5cf6', border: '1px solid #8b5cf6', borderRadius: 1.5, '&:hover': { background: 'rgba(139,92,246,0.08)' } }}
+                  >
+                    <RestoreIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              {/* Delete button — only when there is history to delete */}
+              {(history.calls.length > 0 || history.puts.length > 0) && (
+                <Tooltip title="Delete history (restorable within 24 h)">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      saveBackup(history);
+                      setBackup(loadBackup());
+                      setHistory({ calls: [], puts: [] });
+                      localStorage.removeItem('oiHistory');
+                    }}
+                    sx={{ color: '#dc2626', border: '1px solid #dc2626', borderRadius: 1.5, '&:hover': { background: 'rgba(220,38,38,0.08)' } }}
+                  >
+                    <DeleteOutlineIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+
             <BiasBanner history={history} />
             <OIChart history={history} fmtInt={fmtInt} />
             <OIHistory history={history} fmtInt={fmtInt} />
