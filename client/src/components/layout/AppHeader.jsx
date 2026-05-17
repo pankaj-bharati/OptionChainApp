@@ -1,9 +1,10 @@
 import {
   AppBar, Toolbar, Box, Typography, Select, MenuItem,
-  FormControl, InputLabel, Chip, IconButton, Tooltip,
+  FormControl, InputLabel, Chip, IconButton, Tooltip, Switch,
 } from '@mui/material';
 import LogoutIcon    from '@mui/icons-material/Logout';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
+import HistoryIcon   from '@mui/icons-material/History';
 
 /**
  * Sticky top navigation bar.
@@ -14,6 +15,8 @@ export default function AppHeader({
   underlyingValue,
   itemChainData,
   setItemChainData,
+  keepHistory,
+  setKeepHistory,
   expiryDates,
   selectedExpiry,
   setSelectedExpiry,
@@ -58,6 +61,27 @@ export default function AppHeader({
             {windowOptions.map(v => <MenuItem key={v} value={v}>{v}</MenuItem>)}
           </Select>
         </FormControl>
+
+        {/* Keep history toggle */}
+        <Tooltip title={keepHistory ? 'History kept when window changes' : 'History cleared when window changes'}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer' }} onClick={() => setKeepHistory(!keepHistory)}>
+            <HistoryIcon sx={{ fontSize: 18, color: keepHistory ? '#38bdf8' : 'rgba(255,255,255,0.35)' }} />
+            <Switch
+              size="small"
+              checked={keepHistory}
+              onChange={e => setKeepHistory(e.target.checked)}
+              onClick={e => e.stopPropagation()}
+              sx={{
+                '& .MuiSwitch-switchBase.Mui-checked': { color: '#38bdf8' },
+                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#38bdf8' },
+                '& .MuiSwitch-track': { backgroundColor: 'rgba(255,255,255,0.25)' },
+              }}
+            />
+            <Typography variant="caption" sx={{ color: keepHistory ? '#38bdf8' : 'rgba(255,255,255,0.45)', fontWeight: 600, whiteSpace: 'nowrap', display: { xs: 'none', sm: 'block' } }}>
+              Keep History
+            </Typography>
+          </Box>
+        </Tooltip>
 
         {/* Expiry selector */}
         <FormControl size="small" sx={{ minWidth: 140 }}>
