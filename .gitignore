@@ -144,7 +144,6 @@ vite.config.ts.timestamp-*
 
 # Electron build output
 dist-electron/
-electron/assets/
 
 # Keep client/dist in git for Electron (it's the packaged app)
 !client/dist/
