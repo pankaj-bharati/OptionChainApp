@@ -1,10 +1,12 @@
 import {
   AppBar, Toolbar, Box, Typography, Select, MenuItem,
-  FormControl, InputLabel, Chip, IconButton, Tooltip, Switch,
+  FormControl, InputLabel, Chip, IconButton, Tooltip, Switch, Button,
 } from '@mui/material';
 import LogoutIcon    from '@mui/icons-material/Logout';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import HistoryIcon   from '@mui/icons-material/History';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import { Link } from 'react-router-dom';
 
 /**
  * Sticky top navigation bar.
@@ -53,6 +55,29 @@ export default function AppHeader({
             Option Chain
           </Typography>
         </Box>
+
+        {/* Full option chain page link */}
+        <Tooltip title="Full Option Chain — all strikes">
+          <Button
+            component={Link}
+            to="/option-chain"
+            startIcon={<TableChartIcon sx={{ fontSize: 16 }} />}
+            size="small"
+            sx={{
+              color: 'rgba(255,255,255,0.75)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: 2,
+              px: 1.5,
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              whiteSpace: 'nowrap',
+              '&:hover': { background: 'rgba(255,255,255,0.08)', color: '#fff', borderColor: '#38bdf8' },
+            }}
+          >
+            Full Chain
+          </Button>
+        </Tooltip>
 
         {/* Window selector */}
         <FormControl size="small" sx={{ minWidth: 90 }}>

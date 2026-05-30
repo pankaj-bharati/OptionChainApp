@@ -4,6 +4,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: './',   // relative paths so Electron can load via file:// protocol
+  appType: 'spa', // serve index.html for all unmatched routes (SPA fallback)
   test: {
     environment: 'jsdom',
     globals: true,
@@ -51,6 +53,6 @@ export default defineConfig({
   ],
   server: {
     open: true,
-    host: true
+    host: true,
   }
 })

@@ -5,6 +5,7 @@ import { RequireAuth, RedirectIfAuthenticated } from './router/guards';
 import LoginPage         from './pages/LoginPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import HomePage          from './pages/HomePage';
+import OptionChainPage   from './pages/OptionChainPage';
 
 export default function App() {
   return (
@@ -20,6 +21,10 @@ export default function App() {
       <Route
         path="/"
         element={<RequireAuth><HomePage /></RequireAuth>}
+      />
+      <Route
+        path="/option-chain"
+        element={<RequireAuth><OptionChainPage /></RequireAuth>}
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

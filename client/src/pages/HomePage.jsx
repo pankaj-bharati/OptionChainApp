@@ -16,7 +16,7 @@ import OIHistory      from '../components/dashboard/OIHistory';
 import { fmtInt, fmtFloat } from '../utils/format';
 
 const FETCH_INTERVAL    = 30000;       // 30 s
-const OI_HISTORY_MAX    = 100;         // max snapshots kept in state + localStorage
+const OI_HISTORY_MAX    = 50;         // max snapshots kept in state + localStorage
 const HISTORY_BACKUP_KEY = 'oiHistoryBackup';   // localStorage key for deleted backup
 const RESTORE_WINDOW_MS  = 24 * 60 * 60 * 1000; // 24 hours
 
